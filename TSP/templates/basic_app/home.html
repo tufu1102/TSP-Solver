@@ -1,0 +1,37 @@
+{% extends 'basic_app/base.html' %}
+
+{% block body_block %}
+<h1>Welcome to Travelling Sales Man Solver App!</h1>
+
+<br>
+
+<style>
+    .animation-container {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+<div class = "animation-container">
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script> 
+
+    <dotlottie-player src="https://lottie.host/b4c1a2ee-7f42-4feb-ae08-9b3c50192166/deWPt3q3Hd.json" background="transparent" speed="1" style="width: 300px; height: 300px;" loop autoplay></dotlottie-player>
+</div>
+
+
+<br>
+
+
+<p style = "font-size: larger;">The Traveling Salesman Problem (TSP) is a well-known problem in theoretical computer science and operations research.
+    The standard version of the TSP is a hard problem and belongs to the NP-Hard class.
+    In this project, we build an application to implement the TSP by the <b>DP approach</b> and the <b>NN approach</b>.
+</p>
+
+<h3>Select an approach from the navbar</h3>
+<p>
+    - Choose your input type. <br>
+    - Enter/Upload appropriate input. <br>
+    - Our algorithms solve the TSP and generate a real-world route map for you. <br>
+</p>
+
+
+{% endblock %}

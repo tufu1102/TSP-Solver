@@ -1,0 +1,148 @@
+{% extends 'basic_app/base.html' %}
+
+{% block body_block %}
+
+{% if not min_distance %}
+<h1>Traveling Salesman Problem Solver</h1>
+
+<br>
+<p style="font-size: larger;">
+    The <strong>Nearest Neighbour</strong> algorithm is a heuristic method for solving the Travelling Salesman Problem, where the algorithm starts from an initial city and repeatedly visits the nearest unvisited city until all cities have been visited. Heuristic algorithms are problem-solving methods designed to find good enough solutions for complex problems within a reasonable amount of time.
+</p>
+<br>
+
+<form id="tsp-form" action="{% url 'basic_app:NN' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div style="margin-bottom: 15px;">
+        {{ form.input_type }}
+    </div>
+    <div id="text-input-field" style="display: none; margin-bottom: 15px;">
+        {{ form.text_input }}
+    </div>
+    <div id="file-input-field" style="display: none; margin-bottom: 15px;">
+        {{ form.csv_file }}
+        <div id="sheet-name-container" style="display: none; margin-top: 15px;">
+            <label for="id_sheet_name">Sheet Name:</label>
+            {{ form.sheet_name }}
+        </div>
+    </div>
+    <div id="map-input-field" style="display: none; margin-bottom: 15px;">
+        <div id="map" style="height: 400px; width: 100%;"></div>
+        {{ form.map_input }}
+    </div>
+    <div id="voice-input-field" style="display: none; margin-bottom: 15px;">
+        <button type="button" id="start-voice">Speak your address</button>
+        {{ form.voice_input }}
+    </div>
+    <button type="submit">Submit</button>
+</form>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputTypeField = document.getElementById('id_input_type');
+    const textField = document.getElementById('text-input-field');
+    const fileField = document.getElementById('file-input-field');
+    const mapField = document.getElementById('map-input-field');
+    const voiceField = document.getElementById('voice-input-field');
+    const fileInput = document.getElementById('id_csv_file');
+    const sheetNameContainer = document.getElementById('sheet-name-container');
+
+    function clearInputs() {
+        document.querySelectorAll('#text-input-field input, #file-input-field input, #map-input-field input, #voice-input-field input').forEach(input => {
+            input.value = '';
+        });
+        if (document.getElementById('start-voice')) {
+            document.getElementById('id_voice_input').value = '';
+        }
+    }
+
+    function handleInputChange() {
+        const value = inputTypeField.value;
+
+        clearInputs();
+
+        textField.style.display = value === 'text' ? 'block' : 'none';
+        fileField.style.display = (value === 'file' || value === 'text_file') ? 'block' : 'none';
+        mapField.style.display = value === 'map' ? 'block' : 'none';
+        voiceField.style.display = value === 'voice' ? 'block' : 'none';
+
+        // Hide the sheet name field initially
+        sheetNameContainer.style.display = 'none';
+
+        // If map field is selected, ensure the map is resized properly
+        if (value === 'map') {
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 200);
+        }
+    }
+
+    inputTypeField.addEventListener('change', handleInputChange);
+    handleInputChange();  // Initial call to set the correct field visibility
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const fileName = file ? file.name : '';
+            const fileExt = fileName.split('.').pop().toLowerCase();
+            if (file && (fileExt === 'csv' || fileExt === 'xlsx')) {
+                sheetNameContainer.style.display = 'block';
+            } else {
+                sheetNameContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // Map initialization (e.g., using Leaflet.js)
+    if (document.getElementById('map')) {
+        var map = L.map('map').setView([51.505, -0.09], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var marker;
+        map.on('click', function(e) {
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+            document.getElementById('id_map_input').value = `${e.latlng.lat}, ${e.latlng.lng}`;
+        });
+
+        // Ensure the map resizes properly
+        map.invalidateSize();
+    }
+
+    // Voice recognition (using Web Speech API)
+    if (document.getElementById('start-voice')) {
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            document.getElementById('start-voice').addEventListener('click', function() {
+                recognition.start();
+            });
+            recognition.onresult = function(event) {
+                const voiceInput = event.results[0][0].transcript;
+                document.getElementById('id_voice_input').value = voiceInput;
+            };
+        }
+    }
+});
+</script>
+
+{% endif %}
+
+{% if min_distance and min_path %}
+<p></p>
+<h3>Optimized Route Map</h3>
+<br>
+<p>Distance: {{min_distance}} km</p>
+<br>
+<div id="map-container">
+    {{ map_html|safe }}
+</div>
+{% endif %}
+
+{% endblock %}

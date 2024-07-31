@@ -1,0 +1,5 @@
+TSP/__pycache__/
+TSP/TSP/__pycache__/
+.env
+TSP/db.sqlite3
+.DS_Store
